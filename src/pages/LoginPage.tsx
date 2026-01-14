@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   Shield, 
@@ -16,15 +16,29 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { useAuth, testUsers } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login
+    if (login(email, password)) {
+      toast.success("Login successful!");
+      navigate("/dashboard");
+    } else {
+      toast.error("Invalid credentials. Try one of the test accounts below.");
+    }
+  };
+
+  const handleQuickLogin = (testEmail: string, testPassword: string) => {
+    setEmail(testEmail);
+    setPassword(testPassword);
   };
 
   return (
@@ -133,8 +147,19 @@ const LoginPage = () => {
             </Button>
           </div>
 
+          {/* Test Accounts */}
+          <div className="mt-8 p-4 bg-muted/50 rounded-xl">
+            <p className="text-xs text-muted-foreground mb-3 font-medium">Quick Login (Test Accounts):</p>
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="outline" size="sm" onClick={() => handleQuickLogin("reader@test.com", "reader123")}>Reader</Button>
+              <Button variant="outline" size="sm" onClick={() => handleQuickLogin("journalist@test.com", "journalist123")}>Journalist</Button>
+              <Button variant="outline" size="sm" onClick={() => handleQuickLogin("org@test.com", "org123")}>Organization</Button>
+              <Button variant="outline" size="sm" onClick={() => handleQuickLogin("admin@test.com", "admin123")}>Admin</Button>
+            </div>
+          </div>
+
           {/* Sign Up Link */}
-          <p className="text-center text-sm text-muted-foreground mt-8">
+          <p className="text-center text-sm text-muted-foreground mt-6">
             Don't have an account?{" "}
             <Link to="/register" className="text-accent font-medium hover:underline">
               Create one now
