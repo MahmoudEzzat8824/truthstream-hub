@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Clock, Eye, MessageCircle, Share2, Bookmark, User } from "lucide-react";
 import { CredibilityBadge, CredibilityLevel } from "@/components/CredibilityBadge";
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
 
 interface NewsCardProps {
   id: string;
@@ -23,6 +24,7 @@ interface NewsCardProps {
 }
 
 export function NewsCard({
+  id,
   title,
   excerpt,
   author,
@@ -40,17 +42,18 @@ export function NewsCard({
   className,
 }: NewsCardProps) {
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -4 }}
-      transition={{ duration: 0.3 }}
-      className={cn(
-        "group relative bg-card rounded-xl overflow-hidden border border-border shadow-sm hover:shadow-lg transition-all duration-300",
-        featured && "md:col-span-2 md:row-span-2",
-        className
-      )}
-    >
+    <Link to={`/article/${id}`}>
+      <motion.article
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        whileHover={{ y: -4 }}
+        transition={{ duration: 0.3 }}
+        className={cn(
+          "group relative bg-card rounded-xl overflow-hidden border border-border shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer",
+          featured && "md:col-span-2 md:row-span-2",
+          className
+        )}
+      >
       {/* Image */}
       <div className={cn("relative overflow-hidden", featured ? "h-64 md:h-80" : "h-48")}>
         <img
@@ -129,6 +132,7 @@ export function NewsCard({
           </button>
         </div>
       </div>
-    </motion.article>
+      </motion.article>
+    </Link>
   );
 }

@@ -201,25 +201,38 @@ const RegisterPage = () => {
               </motion.div>
             )}
 
-            {/* Organization-specific field */}
+            {/* Organization-specific fields */}
             {selectedRole === "organization" && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                className="space-y-2"
+                className="space-y-4"
               >
-                <Label htmlFor="orgName">Organization Name</Label>
-                <div className="relative">
-                  <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    id="orgName"
-                    type="text"
-                    placeholder="e.g., Global News Network"
-                    value={formData.organizationName}
-                    onChange={(e) => setFormData({ ...formData, organizationName: e.target.value })}
-                    className="pl-11 h-12"
-                  />
+                <div className="space-y-2">
+                  <Label htmlFor="orgName">Organization Name</Label>
+                  <div className="relative">
+                    <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input
+                      id="orgName"
+                      type="text"
+                      placeholder="e.g., Global News Network"
+                      value={formData.organizationName}
+                      onChange={(e) => setFormData({ ...formData, organizationName: e.target.value })}
+                      className="pl-11 h-12"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Business License Document *</Label>
+                  <div className="border-2 border-dashed border-border rounded-xl p-6 text-center hover:border-accent/50 transition-colors cursor-pointer">
+                    <input type="file" id="license-upload" className="hidden" accept=".pdf,.doc,.docx,.jpg,.png" />
+                    <label htmlFor="license-upload" className="cursor-pointer">
+                      <FileText className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                      <p className="text-sm font-medium text-foreground">Upload license document</p>
+                      <p className="text-xs text-muted-foreground mt-1">PDF, DOC, or image (max 10MB)</p>
+                    </label>
+                  </div>
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Your organization will require admin approval before activation.
