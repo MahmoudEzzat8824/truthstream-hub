@@ -4,20 +4,32 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import Index from "./pages/Index";
-import FeedPage from "./pages/FeedPage";
-import CommunitiesPage from "./pages/CommunitiesPage";
-import LivePage from "./pages/LivePage";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import DashboardPage from "./pages/DashboardPage";
-import ArticlePage from "./pages/ArticlePage";
-import CreateArticlePage from "./pages/CreateArticlePage";
-import EditArticlePage from "./pages/EditArticlePage";
-import NotFound from "./pages/NotFound";
-import ChatbotWidget from "./components/ChatbotWidget";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { Suspense, lazy } from "react";
 
-const queryClient = new QueryClient();
+// Lazy load pages for better performance
+const Index = lazy(() => import("./pages/Index"));
+const FeedPage = lazy(() => import("./pages/FeedPage"));
+const CommunitiesPage = lazy(() => import("./pages/CommunitiesPage"));
+const LivePage = lazy(() => import("./pages/LivePage"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const RegisterPage = lazy(() => import("./pages/RegisterPage"));
+const DashboardPage = lazy(() => import("./pages/DashboardPage"));
+const ArticlePage = lazy(() => import("./pages/ArticlePage"));
+const CreateArticlePage = lazy(() => import("./pages/CreateArticlePage"));
+const EditArticlePage = lazy(() => import("./pages/EditArticlePage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const ChatbotWidget = lazy(() => import("./components/ChatbotWidget"));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60 * 1000, // 1 minute
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function AppRoutes() {
   return (
@@ -39,18 +51,22 @@ function AppRoutes() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <BrowserRouter>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <AppRoutes />
-            <ChatbotWidget />
-          </TooltipProvider>
-        </BrowserRouter>
-      </AuthProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <BrowserRouter>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <Suspense fallback={<LoadingSpinner fullScreen message="Loading..." />}>
+                <AppRoutes />
+                <ChatbotWidget />
+              </Suspense>
+            </TooltipProvider>
+          </BrowserRouter>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

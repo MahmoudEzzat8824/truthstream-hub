@@ -157,6 +157,7 @@ const Index = () => {
             src={heroBg} 
             alt="" 
             className="w-full h-full object-cover opacity-30"
+            loading="eager"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-background via-background/90 to-background" />
         </div>
@@ -181,8 +182,7 @@ const Index = () => {
               transition={{ delay: 0.1, duration: 0.5 }}
               className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-primary mb-6 leading-tight"
             >
-              Truth in Every{" "}
-              <span className="text-gradient">Story</span>
+              Truth in Every Story
             </motion.h1>
 
             {/* Subtitle */}

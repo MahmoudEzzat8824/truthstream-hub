@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useParams, Link, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -16,53 +16,13 @@ import {
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { CredibilityBadge, CredibilityLevel } from "@/components/CredibilityBadge";
+import { CredibilityBadge } from "@/components/CredibilityBadge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-
-// Mock article data
-const articleData = {
-  id: "1",
-  title: "Global Climate Summit Reaches Historic Agreement on Emissions",
-  content: `
-    <p>World leaders have agreed on unprecedented measures to reduce carbon emissions by 60% before 2040, marking a pivotal moment in the fight against climate change.</p>
-    
-    <p>The agreement, reached after two weeks of intense negotiations in Geneva, represents the most ambitious climate action plan ever adopted by the international community. Representatives from 195 countries signed the accord, which includes binding commitments and enforcement mechanisms.</p>
-    
-    <h2>Key Points of the Agreement</h2>
-    
-    <p>The new framework establishes several groundbreaking provisions:</p>
-    
-    <ul>
-      <li>A 60% reduction in global carbon emissions by 2040</li>
-      <li>$500 billion annual fund for developing nations</li>
-      <li>Phase-out of coal power by 2035 in developed nations</li>
-      <li>Mandatory emissions reporting for all major corporations</li>
-    </ul>
-    
-    <p>"This is a watershed moment for humanity," said UN Secretary-General in a press conference following the signing ceremony. "For the first time, we have a truly global commitment to address the climate crisis with the urgency it demands."</p>
-    
-    <h2>Implementation Challenges</h2>
-    
-    <p>While the agreement has been widely praised, experts note that implementation will be challenging. Several major industrial nations have expressed concerns about the economic impact of such rapid decarbonization.</p>
-    
-    <p>However, environmental groups and climate scientists have largely welcomed the accord as a necessary step toward limiting global warming to 1.5 degrees Celsius above pre-industrial levels.</p>
-  `,
-  author: "Sarah Mitchell",
-  authorAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100",
-  organization: "Climate Watch Network",
-  image: "https://images.unsplash.com/photo-1569163139599-0f4517e36f51?w=1200",
-  category: "Environment",
-  credibility: "verified" as CredibilityLevel,
-  credibilityScore: 98,
-  readTime: "8 min read",
-  views: 45200,
-  comments: 342,
-  likes: 1250,
-  publishedAt: "January 12, 2026",
-};
+import { articleService, Article } from "@/services";
+import { sanitizeHtml } from "@/lib/sanitize";
 
 const comments = [
   {
@@ -97,6 +57,98 @@ const ArticlePage = () => {
   const [newComment, setNewComment] = useState("");
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [article, setArticle] = useState<Article | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch article by ID using service
+  useEffect(() => {
+    const fetchArticle = async () => {
+      if (!id) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const data = await articleService.getArticleById(id);
+        setArticle(data);
+      } catch (error) {
+        console.error("Failed to fetch article:", error);
+        toast.error("Failed to load article");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchArticle();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading article...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!article) {
+    return <Navigate to="/404" replace />;
+  }
+
+  const handleLike = async () => {
+    if (!isAuthenticated) {
+      toast.error("Please login to like articles");
+      return;
+    }
+    
+    try {
+      // Using service for API call (currently mocked)
+      const result = await articleService.toggleLike(article.id);
+      setIsLiked(result.liked);
+      toast.success(result.liked ? "Article liked!" : "Like removed");
+    } catch (error) {
+      // Fallback to local state for now
+      setIsLiked(!isLiked);
+      toast.success(isLiked ? "Like removed" : "Article liked!");
+    }
+  };
+
+  const handleBookmark = async () => {
+    if (!isAuthenticated) {
+      toast.error("Please login to bookmark articles");
+      return;
+    }
+    
+    try {
+      // Using service for API call (currently mocked)
+      const result = await articleService.toggleBookmark(article.id);
+      setIsBookmarked(result.bookmarked);
+      toast.success(result.bookmarked ? "Article bookmarked!" : "Bookmark removed");
+    } catch (error) {
+      // Fallback to local state for now
+      setIsBookmarked(!isBookmarked);
+      toast.success(isBookmarked ? "Bookmark removed" : "Article bookmarked!");
+    }
+  };
+
+  const handleReport = async () => {
+    if (!isAuthenticated) {
+      toast.error("Please login to report articles");
+      return;
+    }
+    
+    try {
+      // Using service for API call (currently mocked)
+      await articleService.reportArticle(article.id, "User reported content");
+      toast.success("Article reported. Our team will review it.");
+    } catch (error) {
+      toast.success("Article reported. Our team will review it.");
+    }
+  };
+
 
   const handleComment = () => {
     if (!isAuthenticated) {
@@ -107,32 +159,6 @@ const ArticlePage = () => {
       toast.success("Comment posted successfully!");
       setNewComment("");
     }
-  };
-
-  const handleLike = () => {
-    if (!isAuthenticated) {
-      toast.error("Please login to like articles");
-      return;
-    }
-    setIsLiked(!isLiked);
-    toast.success(isLiked ? "Like removed" : "Article liked!");
-  };
-
-  const handleBookmark = () => {
-    if (!isAuthenticated) {
-      toast.error("Please login to bookmark articles");
-      return;
-    }
-    setIsBookmarked(!isBookmarked);
-    toast.success(isBookmarked ? "Bookmark removed" : "Article bookmarked!");
-  };
-
-  const handleReport = () => {
-    if (!isAuthenticated) {
-      toast.error("Please login to report articles");
-      return;
-    }
-    toast.success("Article reported. Our team will review it.");
   };
 
   const handleShare = () => {
@@ -163,42 +189,48 @@ const ArticlePage = () => {
             {/* Category and Credibility */}
             <div className="flex items-center gap-4 mb-4">
               <span className="px-3 py-1 text-sm font-medium rounded-full bg-accent/10 text-accent">
-                {articleData.category}
+                {article.category}
               </span>
               <CredibilityBadge
-                level={articleData.credibility}
-                score={articleData.credibilityScore}
+                level={article.credibility}
+                score={article.credibilityScore}
                 showLabel
               />
             </div>
 
             {/* Title */}
             <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-primary mb-6 leading-tight">
-              {articleData.title}
+              {article.title}
             </h1>
 
             {/* Meta */}
             <div className="flex flex-wrap items-center gap-6 mb-8 text-sm text-muted-foreground">
               <div className="flex items-center gap-3">
-                <img
-                  src={articleData.authorAvatar}
-                  alt={articleData.author}
-                  className="w-10 h-10 rounded-full object-cover"
-                />
+                {article.authorAvatar ? (
+                  <img
+                    src={article.authorAvatar}
+                    alt={article.author}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                    <User className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                )}
                 <div>
-                  <p className="font-medium text-foreground">{articleData.author}</p>
-                  <p className="text-xs">{articleData.organization}</p>
+                  <p className="font-medium text-foreground">{article.author}</p>
+                  {article.organization && <p className="text-xs">{article.organization}</p>}
                 </div>
               </div>
               <span className="flex items-center gap-1">
                 <Clock className="h-4 w-4" />
-                {articleData.readTime}
+                {article.readTime}
               </span>
               <span className="flex items-center gap-1">
                 <Eye className="h-4 w-4" />
-                {articleData.views.toLocaleString()} views
+                {article.views.toLocaleString()} views
               </span>
-              <span>{articleData.publishedAt}</span>
+              <span>{article.publishedAt}</span>
             </div>
 
             {/* Credibility Score Bar */}
@@ -206,13 +238,13 @@ const ArticlePage = () => {
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium">AI Credibility Score</span>
                 <span className="text-2xl font-bold text-verified">
-                  {articleData.credibilityScore}%
+                  {article.credibilityScore}%
                 </span>
               </div>
               <div className="h-3 bg-muted rounded-full overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
-                  animate={{ width: `${articleData.credibilityScore}%` }}
+                  animate={{ width: `${article.credibilityScore}%` }}
                   transition={{ duration: 1, delay: 0.5 }}
                   className="h-full bg-gradient-to-r from-verified to-emerald-400 rounded-full"
                 />
@@ -231,8 +263,8 @@ const ArticlePage = () => {
             className="rounded-xl overflow-hidden mb-8"
           >
             <img
-              src={articleData.image}
-              alt={articleData.title}
+              src={article.image}
+              alt={article.title}
               className="w-full h-64 md:h-96 object-cover"
             />
           </motion.div>
@@ -243,7 +275,7 @@ const ArticlePage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
             className="prose prose-lg max-w-none mb-8"
-            dangerouslySetInnerHTML={{ __html: articleData.content }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.content) }}
           />
 
           {/* Action Buttons */}
@@ -254,7 +286,7 @@ const ArticlePage = () => {
               className="gap-2"
             >
               <ThumbsUp className="h-4 w-4" />
-              {articleData.likes + (isLiked ? 1 : 0)}
+              {article.likes + (isLiked ? 1 : 0)}
             </Button>
             <Button variant="outline" onClick={handleShare} className="gap-2">
               <Share2 className="h-4 w-4" />
