@@ -21,7 +21,6 @@ import { StatCard } from "@/components/StatCard";
 import { NewsCard } from "@/components/NewsCard";
 import { CredibilityBadge } from "@/components/CredibilityBadge";
 import { Button } from "@/components/ui/button";
-import heroBg from "@/assets/hero-bg.jpg";
 
 const features = [
   {
@@ -151,16 +150,9 @@ const Index = () => {
       
       {/* Hero Section */}
       <section className="relative overflow-hidden">
-        {/* Background Image */}
-        <div className="absolute inset-0">
-          <img 
-            src={heroBg} 
-            alt="" 
-            className="w-full h-full object-cover opacity-30"
-            loading="eager"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-background via-background/90 to-background" />
-        </div>
+        {/* Background Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-background to-primary/5" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-accent/10 via-transparent to-transparent" />
 
         <div className="container relative mx-auto px-4 py-20 md:py-32">
           <div className="max-w-4xl mx-auto text-center">
